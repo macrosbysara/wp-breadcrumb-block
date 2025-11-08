@@ -1,0 +1,900 @@
+<?xml version="1.0"?><artefact xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="artefact.xsd" name="Breadcrumbs Navigation" slug="breadcrumbs-navigation" type="code-package" schemaVersion="2">
+  <file path="readme.txt">
+    <description>This file contains the readme information for the block. It is used to provide information about the block, its usage, and any other relevant details.</description>
+    <content><![CDATA[
+=== Breadcrumbs Navigation ===
+
+Contributors:      WordPress Telex
+Tags:              block, breadcrumbs, navigation, categories, hierarchy
+Tested up to:      6.8
+Stable tag:        0.1.0
+License:           GPLv2 or later
+License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+
+A flexible breadcrumbs block that displays hierarchical navigation trails based on post categories with customizable settings and full accessibility support.
+
+== Description ==
+
+The Breadcrumbs Navigation block provides an intuitive way to display breadcrumb trails on your WordPress site. It automatically generates a navigation path based on the current post's categories, making it easy for visitors to understand where they are in your site's hierarchy and navigate back to parent pages.
+
+**Key Features:**
+
+* **Automatic Hierarchy Detection** - Intelligently displays the category hierarchy starting from Home
+* **Customizable Separators** - Choose between forward slash (/), chevron (›), or arrow (→) separators
+* **Toggle Home Link** - Option to show or hide the Home link at the start of the trail
+* **Category Selection** - Control which category to use when multiple categories are assigned
+* **Responsive Design** - Works beautifully on all screen sizes
+* **Accessibility First** - Built with semantic HTML and proper ARIA labels
+* **Live Preview** - See breadcrumb structure directly in the block editor
+* **Smart Fallback** - Gracefully handles posts without categories
+
+**How It Works:**
+
+The breadcrumb trail is constructed in the following order:
+1. Home link (optional)
+2. Parent categories (if hierarchical)
+3. Primary or selected category
+4. Current post title (non-clickable)
+
+Each breadcrumb item is clickable except for the current page, which appears as plain text to indicate the user's current location.
+
+== Installation ==
+
+1. Upload the plugin files to the `/wp-content/plugins/breadcrumbs-navigation` directory, or install the plugin through the WordPress plugins screen directly.
+2. Activate the plugin through the 'Plugins' screen in WordPress
+3. Add the Breadcrumbs Navigation block to any post or page using the block editor
+4. Customize the block settings in the sidebar to match your preferences
+
+== Frequently Asked Questions ==
+
+= Does this work with custom post types? =
+
+Yes! The block works with any post type that supports categories. It will display the category hierarchy for the current post.
+
+= What happens if a post has no categories? =
+
+The breadcrumb will show only the Home link (if enabled) followed by the current post title.
+
+= Can I customize the separator? =
+
+Absolutely! You can choose from three separator styles: forward slash (/), chevron (›), or arrow (→).
+
+= What if a post has multiple categories? =
+
+You can choose to display either the first assigned category or let the block automatically select the primary category based on hierarchy depth.
+
+= Is the block accessible? =
+
+Yes, the block is built with accessibility in mind, including proper semantic HTML5 nav elements and ARIA labels for screen readers.
+
+== Screenshots ==
+
+1. Breadcrumbs block in the editor with live preview
+2. Block settings panel showing customization options
+3. Frontend display with hierarchical category path
+4. Responsive design on mobile devices
+
+== Changelog ==
+
+= 0.1.0 =
+* Initial release
+* Hierarchical category navigation
+* Customizable separators
+* Toggle Home link option
+* Category selection controls
+* Full accessibility support
+* Responsive design
+
+== Usage ==
+
+After installing and activating the plugin:
+
+1. Edit any post or page in the block editor
+2. Click the '+' button to add a new block
+3. Search for "Breadcrumbs Navigation"
+4. The block will automatically display the breadcrumb trail
+5. Use the sidebar settings to customize:
+   - Toggle the Home link on/off
+   - Select separator style
+   - Choose category display preference
+
+The breadcrumbs will automatically update on the frontend based on the current post's categories and hierarchy.
+]]></content>
+  </file>
+  <file path="breadcrumbs-navigation.php">
+    <description>This file contains the block registration code in the form of a single block plugin. Any other plugin related functionality should be added to this file. All block rendering functionality should go to the `render.php` file.</description>
+    <content><![CDATA[<?php
+/**
+ * Plugin Name:       Breadcrumbs Navigation
+ * Description:       A flexible breadcrumbs block that displays hierarchical navigation trails based on post categories with customizable settings and full accessibility support.
+ * Version:           0.1.0
+ * Requires at least: 6.1
+ * Requires PHP:      7.4
+ * Author:            WordPress Telex
+ * License:           GPLv2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       breadcrumbs-navigation
+ *
+ * @package BreadcrumbsNavigation
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Registers the block using the metadata loaded from the `block.json` file.
+ * Behind the scenes, it registers also all assets so they can be enqueued
+ * through the block editor in the corresponding context.
+ *
+ * @see https://developer.wordpress.org/reference/functions/register_block_type/
+ */
+function breadcrumbs_navigation_breadcrumbs_navigation_block_init() {
+	register_block_type( __DIR__ . '/build/' );
+}
+add_action( 'init', 'breadcrumbs_navigation_breadcrumbs_navigation_block_init' );
+]]></content>
+  </file>
+  <file path="src/block.json">
+    <description>This file contains metadata about the block including its name, title, category, icon, and other properties.</description>
+    <content><![CDATA[
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "telex/block-breadcrumbs-navigation",
+	"version": "0.1.0",
+	"title": "Breadcrumbs Navigation",
+	"category": "theme",
+	"icon": "arrow-right-alt2",
+	"description": "Display hierarchical navigation breadcrumbs based on post categories",
+	"example": {
+		"attributes": {
+			"showHome": true,
+			"separator": "slash",
+			"categorySelection": "first"
+		}
+	},
+	"attributes": {
+		"showHome": {
+			"type": "boolean",
+			"default": true
+		},
+		"separator": {
+			"type": "string",
+			"default": "slash",
+			"enum": ["slash", "chevron", "arrow"]
+		},
+		"categorySelection": {
+			"type": "string",
+			"default": "first",
+			"enum": ["first", "deepest"]
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"],
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"color": {
+			"text": true,
+			"background": true,
+			"link": true
+		}
+	},
+	"textdomain": "breadcrumbs-navigation",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}
+  ]]></content>
+  </file>
+  <file path="src/index.js">
+    <description>This file registers the block, specifies the edit function, and loads the block's metadata</description>
+    <content><![CDATA[
+/**
+ * Registers a new block provided a unique name and an object defining its behavior.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
+ */
+import { registerBlockType } from '@wordpress/blocks';
+
+/**
+ * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
+ * All files containing `style` keyword are bundled together. The code used
+ * gets applied both to the front of your site and to the editor.
+ *
+ * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
+ */
+import './style.scss';
+
+/**
+ * Internal dependencies
+ */
+import Edit from './edit';
+import metadata from './block.json';
+
+/**
+ * Every block starts by registering a new block type definition.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
+ */
+registerBlockType( metadata.name, {
+	/**
+	 * @see ./edit.js
+	 */
+	edit: Edit,
+} );
+	]]></content>
+  </file>
+  <file path="src/edit.js">
+    <description>This file contains the edit function for the block which is responsible for rendering the block in the editor.</description>
+    <content><![CDATA[/**
+ * Retrieves the translation of text.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
+ */
+import { __ } from '@wordpress/i18n';
+
+/**
+ * React hook that is used to mark the block wrapper element.
+ * It provides all the necessary props like the class name.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
+ */
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+
+/**
+ * WordPress dependencies
+ */
+import { PanelBody, ToggleControl, SelectControl, Notice } from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
+import { useState, useEffect } from '@wordpress/element';
+
+/**
+ * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
+ * Those files can contain any CSS code that gets applied to the editor.
+ *
+ * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
+ */
+import './editor.scss';
+
+/**
+ * The edit function describes the structure of your block in the context of the
+ * editor. This represents what the editor will render when the block is used.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
+ *
+ * @param {Object}   props               Block props.
+ * @param {Object}   props.attributes    Block attributes.
+ * @param {Function} props.setAttributes Function to set attributes.
+ * @return {Element} Element to render.
+ */
+export default function Edit( { attributes, setAttributes } ) {
+	const { showHome, separator, categorySelection } = attributes;
+	
+	const { categories, categoryDetails, allCategories } = useSelect( ( select ) => {
+		const coreDataStore = select( 'core' );
+		const editorStore = select( 'core/editor' );
+		
+		if ( ! coreDataStore || ! editorStore ) {
+			return {
+				categories: [],
+				categoryDetails: [],
+				allCategories: [],
+			};
+		}
+		
+		const currentPostId = editorStore.getCurrentPostId();
+		const currentPostType = editorStore.getCurrentPostType();
+		
+		if ( ! currentPostId || ! currentPostType ) {
+			return {
+				categories: [],
+				categoryDetails: [],
+				allCategories: [],
+			};
+		}
+		
+		const post = coreDataStore.getEntityRecord( 'postType', currentPostType, currentPostId );
+		const postCategories = post?.categories || [];
+		
+		// Fetch all categories to build full hierarchy
+		const allCats = coreDataStore.getEntityRecords( 'taxonomy', 'category', {
+			per_page: -1,
+		} ) || [];
+		
+		if ( postCategories.length === 0 ) {
+			return {
+				categories: [],
+				categoryDetails: [],
+				allCategories: allCats,
+			};
+		}
+		
+		const details = coreDataStore.getEntityRecords( 'taxonomy', 'category', {
+			include: postCategories,
+			per_page: -1,
+		} );
+		
+		return {
+			categories: postCategories,
+			categoryDetails: details || [],
+			allCategories: allCats,
+		};
+	}, [] );
+
+	const getSeparatorSymbol = () => {
+		switch ( separator ) {
+			case 'chevron':
+				return '›';
+			case 'arrow':
+				return '→';
+			case 'slash':
+			default:
+				return '/';
+		}
+	};
+
+	const getAncestors = ( category, allCats ) => {
+		const ancestors = [];
+		let current = category;
+		
+		while ( current.parent ) {
+			const parent = allCats.find( cat => cat.id === current.parent );
+			if ( parent ) {
+				ancestors.push( parent );
+				current = parent;
+			} else {
+				break;
+			}
+		}
+		
+		return ancestors;
+	};
+
+	const getAncestorDepth = ( category, allCats ) => {
+		return getAncestors( category, allCats ).length;
+	};
+
+	const buildCategoryHierarchyInfo = () => {
+		if ( ! categoryDetails || categoryDetails.length === 0 ) {
+			return null;
+		}
+
+		const categoryInfo = categoryDetails.map( cat => {
+			const ancestors = getAncestors( cat, allCategories );
+			const depth = ancestors.length;
+			const hierarchyPath = [...ancestors.reverse().map( a => a.name ), cat.name].join( ' › ' );
+			
+			return {
+				id: cat.id,
+				name: cat.name,
+				depth,
+				hierarchyPath,
+				category: cat,
+			};
+		} );
+
+		// Sort by depth (deepest first)
+		categoryInfo.sort( ( a, b ) => b.depth - a.depth );
+
+		return categoryInfo;
+	};
+
+	const buildBreadcrumbPreview = () => {
+		const items = [];
+		const separatorSymbol = getSeparatorSymbol();
+		
+		if ( showHome ) {
+			items.push(
+				<span key="home" className="breadcrumb-item">
+					<a href="#">{ __( 'Home', 'breadcrumbs-navigation' ) }</a>
+				</span>
+			);
+		}
+		
+		if ( categoryDetails && categoryDetails.length > 0 ) {
+			// Build category hierarchy
+			let selectedCategory;
+			
+			if ( categorySelection === 'deepest' ) {
+				// Find the category with the most ancestors
+				selectedCategory = categoryDetails.reduce( ( deepest, cat ) => {
+					const depth = cat.parent ? getAncestorDepth( cat, allCategories ) : 0;
+					const deepestDepth = deepest ? ( deepest.parent ? getAncestorDepth( deepest, allCategories ) : 0 ) : -1;
+					return depth > deepestDepth ? cat : deepest;
+				}, null );
+			} else {
+				// Use first category
+				selectedCategory = categoryDetails[0];
+			}
+			
+			if ( selectedCategory ) {
+				const ancestors = getAncestors( selectedCategory, allCategories );
+				
+				// Add ancestor categories
+				ancestors.reverse().forEach( ( cat ) => {
+					items.push(
+						<span key={ `sep-${ cat.id }` } className="breadcrumb-separator" aria-hidden="true">
+							{ ' ' + separatorSymbol + ' ' }
+						</span>
+					);
+					items.push(
+						<span key={ cat.id } className="breadcrumb-item">
+							<a href="#">{ cat.name }</a>
+						</span>
+					);
+				} );
+				
+				// Add selected category
+				items.push(
+					<span key={ `sep-${ selectedCategory.id }` } className="breadcrumb-separator" aria-hidden="true">
+						{ ' ' + separatorSymbol + ' ' }
+					</span>
+				);
+				items.push(
+					<span key={ selectedCategory.id } className="breadcrumb-item">
+						<a href="#">{ selectedCategory.name }</a>
+					</span>
+				);
+			}
+		}
+		
+		// Add current post
+		items.push(
+			<span key="sep-current" className="breadcrumb-separator" aria-hidden="true">
+				{ ' ' + separatorSymbol + ' ' }
+			</span>
+		);
+		items.push(
+			<span key="current" className="breadcrumb-item breadcrumb-current">
+				{ __( 'Current Post', 'breadcrumbs-navigation' ) }
+			</span>
+		);
+		
+		return items;
+	};
+
+	const categoryHierarchyInfo = buildCategoryHierarchyInfo();
+
+	return (
+		<>
+			<InspectorControls>
+				<PanelBody title={ __( 'Breadcrumb Settings', 'breadcrumbs-navigation' ) }>
+					<ToggleControl
+						label={ __( 'Show Home Link', 'breadcrumbs-navigation' ) }
+						help={ __( 'Display "Home" as the first breadcrumb item', 'breadcrumbs-navigation' ) }
+						checked={ showHome }
+						onChange={ ( value ) => setAttributes( { showHome: value } ) }
+					/>
+					<SelectControl
+						label={ __( 'Separator Style', 'breadcrumbs-navigation' ) }
+						value={ separator }
+						options={ [
+							{ label: __( 'Forward Slash (/)', 'breadcrumbs-navigation' ), value: 'slash' },
+							{ label: __( 'Chevron (›)', 'breadcrumbs-navigation' ), value: 'chevron' },
+							{ label: __( 'Arrow (→)', 'breadcrumbs-navigation' ), value: 'arrow' },
+						] }
+						onChange={ ( value ) => setAttributes( { separator: value } ) }
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Category Settings', 'breadcrumbs-navigation' ) } initialOpen={ true }>
+					<SelectControl
+						label={ __( 'Category Selection Strategy', 'breadcrumbs-navigation' ) }
+						help={ __( 'Choose which category to display when multiple categories are assigned to a post', 'breadcrumbs-navigation' ) }
+						value={ categorySelection }
+						options={ [
+							{ label: __( 'First Assigned Category', 'breadcrumbs-navigation' ), value: 'first' },
+							{ label: __( 'Deepest Category Hierarchy', 'breadcrumbs-navigation' ), value: 'deepest' },
+						] }
+						onChange={ ( value ) => setAttributes( { categorySelection: value } ) }
+					/>
+					
+					{ categoryHierarchyInfo && categoryHierarchyInfo.length > 0 && (
+						<>
+							<div style={{ marginTop: '16px', marginBottom: '8px' }}>
+								<strong>{ __( 'Category Hierarchy Analysis', 'breadcrumbs-navigation' ) }</strong>
+							</div>
+							<Notice status="info" isDismissible={ false }>
+								<p style={{ margin: 0, fontSize: '12px' }}>
+									{ categorySelection === 'first' 
+										? __( 'Using first assigned category', 'breadcrumbs-navigation' )
+										: __( 'Using deepest category in hierarchy', 'breadcrumbs-navigation' )
+									}
+								</p>
+							</Notice>
+							<div style={{ 
+								marginTop: '12px',
+								padding: '12px',
+								background: '#f7f7f7',
+								borderRadius: '4px',
+								fontSize: '13px'
+							}}>
+								{ categoryHierarchyInfo.map( ( info, index ) => (
+									<div 
+										key={ info.id }
+										style={{ 
+											marginBottom: index < categoryHierarchyInfo.length - 1 ? '8px' : 0,
+											paddingBottom: index < categoryHierarchyInfo.length - 1 ? '8px' : 0,
+											borderBottom: index < categoryHierarchyInfo.length - 1 ? '1px solid #ddd' : 'none'
+										}}
+									>
+										<div style={{ fontWeight: '600', marginBottom: '4px' }}>
+											{ info.name }
+											<span style={{ 
+												fontWeight: 'normal',
+												color: '#666',
+												marginLeft: '8px'
+											}}>
+												({ __( 'Depth', 'breadcrumbs-navigation' ) }: { info.depth })
+											</span>
+										</div>
+										<div style={{ 
+											color: '#666',
+											fontSize: '12px',
+											fontStyle: 'italic'
+										}}>
+											{ info.hierarchyPath }
+										</div>
+									</div>
+								) ) }
+							</div>
+							<p style={{ 
+								marginTop: '12px',
+								marginBottom: 0,
+								fontSize: '12px',
+								color: '#666'
+							}}>
+								{ categorySelection === 'first'
+									? __( 'The breadcrumb will use the first category in the list above.', 'breadcrumbs-navigation' )
+									: __( 'The breadcrumb will use the category with the greatest depth (most parent categories).', 'breadcrumbs-navigation' )
+								}
+							</p>
+						</>
+					) }
+					
+					{ ( ! categoryDetails || categoryDetails.length === 0 ) && (
+						<Notice status="warning" isDismissible={ false }>
+							<p style={{ margin: 0 }}>
+								{ __( 'This post has no categories assigned. The breadcrumb will only show Home (if enabled) and the current post.', 'breadcrumbs-navigation' ) }
+							</p>
+						</Notice>
+					) }
+				</PanelBody>
+			</InspectorControls>
+			<nav { ...useBlockProps() } aria-label={ __( 'Breadcrumb', 'breadcrumbs-navigation' ) }>
+				<ol className="breadcrumb-list">
+					<li>
+						{ buildBreadcrumbPreview() }
+					</li>
+				</ol>
+			</nav>
+		</>
+	);
+}
+]]></content>
+  </file>
+  <file path="src/save.js">
+    <description>This file contains the save function for the block which is responsible for creating the static result of rendering the block on the client to display the saved result on the front end.</description>
+    <content><![CDATA[
+	]]></content>
+  </file>
+  <file path="src/style.scss">
+    <description>This file contains styles for the block in the front end.</description>
+    <content><![CDATA[
+/**
+ * The following styles get applied both on the front of your site
+ * and in the editor.
+ *
+ * Replace them with your own styles or remove the file completely.
+ */
+
+.wp-block-telex-block-breadcrumbs-navigation {
+	font-size: 0.875rem;
+	line-height: 1.5;
+	padding: 0.75rem 0;
+
+	.breadcrumb-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0;
+	}
+
+	.breadcrumb-item {
+		display: inline-block;
+
+		a {
+			color: inherit;
+			text-decoration: none;
+			transition: opacity 0.2s ease;
+
+			&:hover {
+				opacity: 0.7;
+				text-decoration: underline;
+			}
+
+			&:focus {
+				outline: 2px solid currentColor;
+				outline-offset: 2px;
+				border-radius: 2px;
+			}
+		}
+	}
+
+	.breadcrumb-current {
+		color: inherit;
+		opacity: 0.7;
+	}
+
+	.breadcrumb-separator {
+		display: inline-block;
+		margin: 0 0.5rem;
+		opacity: 0.5;
+		user-select: none;
+	}
+
+	// Responsive adjustments
+	@media (max-width: 600px) {
+		font-size: 0.8125rem;
+		
+		.breadcrumb-separator {
+			margin: 0 0.375rem;
+		}
+	}
+}
+	]]></content>
+  </file>
+  <file path="src/editor.scss">
+    <description>This file contains styles for the block in the editor.</description>
+    <content><![CDATA[
+/**
+ * The following styles get applied inside the editor only.
+ *
+ * Replace them with your own styles or remove the file completely.
+ */
+
+.wp-block-telex-block-breadcrumbs-navigation {
+	border: 1px dashed #ccc;
+	border-radius: 4px;
+	padding: 1rem;
+	background-color: #f9f9f9;
+	
+	&::before {
+		content: "Breadcrumbs Preview";
+		display: block;
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		color: #666;
+		margin-bottom: 0.5rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+	}
+}
+	]]></content>
+  </file>
+  <file path="src/view.js">
+    <description>This file contains the view function for the block which is responsible for rendering interactive behaviors of the block on the front end.</description>
+    <content><![CDATA[
+/**
+ * Use this file for JavaScript code that you want to run in the front-end
+ * on posts/pages that contain this block.
+ */
+	]]></content>
+  </file>
+  <file path="src/render.php">
+    <description>This file contains the render callback function for the block, which is responsible for rendering the block content on the front end.</description>
+    <content><![CDATA[<?php
+/**
+ * @see https://github.com/WordPress/gutenberg/blob/trunk/docs/reference-guides/block-api/block-metadata.md#render
+ */
+
+if ( ! function_exists( 'breadcrumbs_navigation_get_separator' ) ) {
+	/**
+	 * Get the separator symbol based on the block attributes.
+	 *
+	 * @param string $separator The separator type.
+	 * @return string The separator symbol.
+	 */
+	function breadcrumbs_navigation_get_separator( $separator ) {
+		switch ( $separator ) {
+			case 'chevron':
+				return '›';
+			case 'arrow':
+				return '→';
+			case 'slash':
+			default:
+				return '/';
+		}
+	}
+}
+
+if ( ! function_exists( 'breadcrumbs_navigation_get_category_ancestors' ) ) {
+	/**
+	 * Get all ancestor categories for a given category.
+	 *
+	 * @param int $category_id The category ID.
+	 * @return array Array of category objects.
+	 */
+	function breadcrumbs_navigation_get_category_ancestors( $category_id ) {
+		$ancestors = array();
+		$current_id = $category_id;
+		
+		while ( $current_id ) {
+			$category = get_category( $current_id );
+			if ( ! $category || is_wp_error( $category ) ) {
+				break;
+			}
+			
+			if ( $category->parent ) {
+				$parent = get_category( $category->parent );
+				if ( $parent && ! is_wp_error( $parent ) ) {
+					$ancestors[] = $parent;
+					$current_id = $parent->term_id;
+				} else {
+					break;
+				}
+			} else {
+				break;
+			}
+		}
+		
+		return array_reverse( $ancestors );
+	}
+}
+
+if ( ! function_exists( 'breadcrumbs_navigation_get_selected_category' ) ) {
+	/**
+	 * Get the selected category based on the selection strategy.
+	 *
+	 * @param array  $categories The array of category objects.
+	 * @param string $strategy The selection strategy ('first' or 'deepest').
+	 * @return object|null The selected category or null.
+	 */
+	function breadcrumbs_navigation_get_selected_category( $categories, $strategy ) {
+		if ( empty( $categories ) ) {
+			return null;
+		}
+		
+		if ( $strategy === 'deepest' ) {
+			$deepest = null;
+			$max_depth = -1;
+			
+			foreach ( $categories as $category ) {
+				$ancestors = breadcrumbs_navigation_get_category_ancestors( $category->term_id );
+				$depth = count( $ancestors );
+				
+				if ( $depth > $max_depth ) {
+					$max_depth = $depth;
+					$deepest = $category;
+				}
+			}
+			
+			return $deepest;
+		}
+		
+		// Default to first category
+		return $categories[0];
+	}
+}
+
+// Get block attributes
+$show_home = isset( $attributes['showHome'] ) ? $attributes['showHome'] : true;
+$separator = isset( $attributes['separator'] ) ? $attributes['separator'] : 'slash';
+$category_selection = isset( $attributes['categorySelection'] ) ? $attributes['categorySelection'] : 'first';
+
+// Get separator symbol
+$separator_symbol = breadcrumbs_navigation_get_separator( $separator );
+
+// Build breadcrumb items
+$items = array();
+
+// Add Home link
+if ( $show_home ) {
+	$items[] = array(
+		'url' => home_url( '/' ),
+		'title' => __( 'Home', 'breadcrumbs-navigation' ),
+		'is_current' => false,
+	);
+}
+
+// Get post categories
+$post_id = get_the_ID();
+$categories = get_the_category( $post_id );
+
+if ( ! empty( $categories ) ) {
+	// Select category based on strategy
+	$selected_category = breadcrumbs_navigation_get_selected_category( $categories, $category_selection );
+	
+	if ( $selected_category ) {
+		// Get ancestors
+		$ancestors = breadcrumbs_navigation_get_category_ancestors( $selected_category->term_id );
+		
+		// Add ancestor categories
+		foreach ( $ancestors as $ancestor ) {
+			$items[] = array(
+				'url' => get_category_link( $ancestor->term_id ),
+				'title' => $ancestor->name,
+				'is_current' => false,
+			);
+		}
+		
+		// Add selected category
+		$items[] = array(
+			'url' => get_category_link( $selected_category->term_id ),
+			'title' => $selected_category->name,
+			'is_current' => false,
+		);
+	}
+}
+
+// Add current post
+$items[] = array(
+	'url' => '',
+	'title' => get_the_title(),
+	'is_current' => true,
+);
+
+// Generate breadcrumb HTML
+$breadcrumb_html = '';
+$item_count = count( $items );
+
+foreach ( $items as $index => $item ) {
+	$is_last = ( $index === $item_count - 1 );
+	
+	if ( $item['is_current'] || $is_last ) {
+		$breadcrumb_html .= '<span class="breadcrumb-item breadcrumb-current">' . esc_html( $item['title'] ) . '</span>';
+	} else {
+		$breadcrumb_html .= '<span class="breadcrumb-item"><a href="' . esc_url( $item['url'] ) . '">' . esc_html( $item['title'] ) . '</a></span>';
+	}
+	
+	// Add separator if not last item
+	if ( ! $is_last ) {
+		$breadcrumb_html .= '<span class="breadcrumb-separator" aria-hidden="true"> ' . esc_html( $separator_symbol ) . ' </span>';
+	}
+}
+?>
+
+<nav <?php echo get_block_wrapper_attributes(); ?> aria-label="<?php echo esc_attr__( 'Breadcrumb', 'breadcrumbs-navigation' ); ?>">
+	<ol class="breadcrumb-list">
+		<li><?php echo wp_kses_post( $breadcrumb_html ); ?></li>
+	</ol>
+</nav>
+]]></content>
+  </file>
+  <file path="package.json">
+    <description>This file includes the necessary scripts for building, formatting, and linting the block code.</description>
+    <content><![CDATA[
+{
+	"name": "breadcrumbs-navigation",
+	"version": "0.1.0",
+	"description": "A flexible breadcrumbs block that displays hierarchical navigation trails based on post categories with customizable settings and full accessibility support.",
+	"author": "WordPress Telex",
+	"license": "GPL-2.0-or-later",
+	"main": "build/index.js",
+	"scripts": {
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"packages-update": "wp-scripts packages-update",
+		"plugin-zip": "wp-scripts plugin-zip",
+		"start": "wp-scripts start"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^30.15.0"
+	}
+}
+]]></content>
+  </file>
+</artefact>

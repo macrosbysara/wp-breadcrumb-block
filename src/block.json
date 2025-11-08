@@ -1,0 +1,56 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "telex/block-breadcrumbs-navigation",
+	"version": "0.1.0",
+	"title": "Breadcrumbs Navigation",
+	"category": "theme",
+	"icon": "arrow-right-alt2",
+	"description": "Display hierarchical navigation breadcrumbs based on post categories",
+	"example": {
+		"attributes": {
+			"showHome": true,
+			"separator": "slash",
+			"categorySelection": "first"
+		}
+	},
+	"attributes": {
+		"showHome": {
+			"type": "boolean",
+			"default": true
+		},
+		"separator": {
+			"type": "string",
+			"default": "slash",
+			"enum": [ "slash", "chevron", "arrow" ]
+		},
+		"categorySelection": {
+			"type": "string",
+			"default": "first",
+			"enum": [ "first", "deepest", "all" ]
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ],
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"blockGap": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"color": {
+			"text": true,
+			"background": true,
+			"link": true
+		}
+	},
+	"textdomain": "breadcrumbs-navigation",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}
