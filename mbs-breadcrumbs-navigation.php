@@ -7,8 +7,8 @@
  * Requires PHP:      8.0
  * Author:            K.J. Roelke
  * Author URI:        https://www.kjroelke.online/
- * License:           GPLv2 or later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * License:           GPLv3 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       breadcrumbs-navigation
  *
  * @package BreadcrumbsNavigation

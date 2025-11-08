@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"description": "A flexible breadcrumbs block that displays hierarchical navigation trails based on post categories with customizable settings and full accessibility support.",
 	"author": "K.J. Roelke",
-	"license": "GPL-2.0-or-later",
+	"license": "GPL-3.0-or-later",
 	"main": "build/index.js",
 	"prettier": "@wordpress/prettier-config",
 	"scripts": {
