@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Breadcrumbs Navigation
  * Description:       A flexible breadcrumbs block that displays hierarchical navigation trails based on post categories with customizable settings and full accessibility support. Bootstrapped with Automattic Telex
- * Version:           0.1.0
+ * Version:           1.0.0
  * Requires at least: 6.7.0
  * Requires PHP:      8.0
  * Author:            K.J. Roelke
@@ -17,6 +17,9 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
+
+// Require the Breadcrumbs class.
+require_once __DIR__ . '/inc/class-breadcrumbs.php';
 
 /**
  * Registers the block using the metadata loaded from the `block.json` file.

@@ -1,11 +1,11 @@
 # Breadcrumbs Navigation
 
-**Contributors:** WordPress Telex  
+**Contributors:** WordPress Telex, K.J. Roelke
 **Tags:** block, breadcrumbs, navigation, categories, hierarchy  
 **Tested up to:** 6.8  
-**Stable tag:** 0.1.0  
-**License:** GPLv2 or later  
-**License URI:** https://www.gnu.org/licenses/gpl-2.0.html
+**Stable tag:** 1.0.0  
+**License:** GPLv3 or later  
+**License URI:** https://www.gnu.org/licenses/gpl-3.0.html
 
 A flexible breadcrumbs block that displays hierarchical navigation trails based on post categories with customizable settings and full accessibility support.
 
@@ -17,14 +17,14 @@ The Breadcrumbs Navigation block provides an intuitive way to display breadcrumb
 
 ### Key Features
 
-- **Automatic Hierarchy Detection**: Intelligently displays the category hierarchy starting from Home
-- **Customizable Separators**: Choose between forward slash (/), chevron (›), or arrow (→) separators
-- **Toggle Home Link**: Option to show or hide the Home link at the start of the trail
-- **Category Selection**: Control which category to use when multiple categories are assigned
-- **Responsive Design**: Works beautifully on all screen sizes
-- **Accessibility First**: Built with semantic HTML and proper ARIA labels
-- **Live Preview**: See breadcrumb structure directly in the block editor
-- **Smart Fallback**: Gracefully handles posts without categories
+-   **Automatic Hierarchy Detection**: Intelligently displays the category hierarchy starting from Home
+-   **Customizable Separators**: Choose between forward slash (/), chevron (›), or arrow (→) separators
+-   **Toggle Home Link**: Option to show or hide the Home link at the start of the trail
+-   **Category Selection**: Control which category to use when multiple categories are assigned
+-   **Responsive Design**: Works beautifully on all screen sizes
+-   **Accessibility First**: Built with semantic HTML and proper ARIA labels
+-   **Live Preview**: See breadcrumb structure directly in the block editor
+-   **Smart Fallback**: Gracefully handles posts without categories
 
 ### How It Works
 
@@ -51,18 +51,23 @@ Each breadcrumb item is clickable except for the current page, which appears as 
 ## Frequently Asked Questions
 
 ### Does this work with custom post types?
+
 Yes! The block works with any post type that supports categories. It will display the category hierarchy for the current post.
 
 ### What happens if a post has no categories?
+
 The breadcrumb will show only the Home link (if enabled) followed by the current post title.
 
 ### Can I customize the separator?
+
 Absolutely! You can choose from three separator styles: forward slash (/), chevron (›), or arrow (→).
 
 ### What if a post has multiple categories?
+
 You can choose to display either the first assigned category or let the block automatically select the primary category based on hierarchy depth.
 
 ### Is the block accessible?
+
 Yes, the block is built with accessibility in mind, including proper semantic HTML5 nav elements and ARIA labels for screen readers.
 
 ---
@@ -85,8 +90,8 @@ After installing and activating the plugin:
 3. Search for "Breadcrumbs Navigation"
 4. The block will automatically display the breadcrumb trail
 5. Use the sidebar settings to customize:
-   - Toggle the Home link on/off
-   - Select separator style
-   - Choose category display preference
+    - Toggle the Home link on/off
+    - Select separator style
+    - Choose category display preference
 
 The breadcrumbs will automatically update on the frontend based on the current post's categories and hierarchy.
