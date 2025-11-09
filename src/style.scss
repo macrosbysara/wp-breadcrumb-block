@@ -5,7 +5,7 @@
  * Replace them with your own styles or remove the file completely.
  */
 
-.wp-block-mbs-block-breadcrumbs-navigation {
+.wp-block-mbs-breadcrumbs-navigation-block {
 	.breadcrumb-list {
 		list-style: none;
 		margin: 0;
@@ -47,14 +47,5 @@
 		margin: 0 0.5rem;
 		opacity: 0.5;
 		user-select: none;
-	}
-
-	// Responsive adjustments
-	@media (max-width: 600px) {
-		font-size: 0.8125rem;
-
-		.breadcrumb-separator {
-			margin: 0 0.375rem;
-		}
 	}
 }

@@ -19,6 +19,7 @@ export default function Edit( props ) {
 	}, [] );
 	const blockProps = useBlockProps();
 	const separatorSymbol = getSeparatorSymbol( separator );
+
 	useEffect( () => {
 		if ( categoryDetails && categoryDetails.length > 0 ) {
 			if ( categorySelection === 'deepest' ) {
