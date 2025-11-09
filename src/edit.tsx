@@ -1,46 +1,124 @@
-/**
- * React hook that is used to mark the block wrapper element.
- * It provides all the necessary props like the class name.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
- */
 import { useBlockProps } from '@wordpress/block-editor';
+import { Spinner } from '@wordpress/components';
+import { useState, useEffect } from '@wordpress/element';
 
-import Breadcrumb from './Breadcrumb';
 import BlockControls from './BlockControls';
 import useCategories from './hooks/useCategories';
+import { useSelect } from '@wordpress/data';
+import { store as editorStore } from '@wordpress/editor';
 
-/**
- * The edit function describes the structure of your block in the context of the
- * editor. This represents what the editor will render when the block is used.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
- *
- * @param {Object}   props               Block props.
- * @param {Object}   props.attributes    Block attributes.
- * @param {Function} props.setAttributes Function to set attributes.
- * @return {Element} Element to render.
- */
 export default function Edit( props ) {
 	const { showHome, separator, categorySelection } = props.attributes;
+	const { categoryDetails, allCategories, isResolving } = useCategories();
+	const [ selectedCategory, setSelectedCategory ] = useState< string | null >(
+		null
+	);
+	const [ items, setItems ] = useState< string[] >( [] );
+	const postTitle = useSelect( ( select ) => {
+		return select( editorStore ).getCurrentPost()?.title;
+	}, [] );
 	const blockProps = useBlockProps();
-	const { categoryDetails, allCategories } = useCategories();
+	const separatorSymbol = getSeparatorSymbol( separator );
+	useEffect( () => {
+		if ( categoryDetails && categoryDetails.length > 0 ) {
+			if ( categorySelection === 'deepest' ) {
+				// Find the category with the most ancestors
+				setSelectedCategory( () =>
+					categoryDetails.reduce( ( deepest, cat ) => {
+						const depth = cat.parent
+							? getAncestorDepth( cat, allCategories )
+							: 0;
+						const deepestDepth = deepest
+							? deepest.parent
+								? getAncestorDepth( deepest, allCategories )
+								: 0
+							: -1;
+						return depth > deepestDepth ? cat.name : deepest.name;
+					}, null )
+				);
+			} else {
+				// Use first category
+				setSelectedCategory( categoryDetails[ 0 ].name );
+			}
+		}
+	}, [ categoryDetails, allCategories, categorySelection ] );
+
+	useEffect( () => {
+		if ( selectedCategory ) {
+			const ancestors = getAncestors( selectedCategory, allCategories );
+			setItems( [ ...ancestors.reverse(), selectedCategory ] );
+		}
+	}, [ selectedCategory, allCategories ] );
+
 	return (
 		<>
 			<BlockControls { ...props } categoryDetails={ categoryDetails } />
-			<nav { ...blockProps } aria-label="Breadcrumb">
-				<ol className="breadcrumb-list">
-					<li>
-						<Breadcrumb
-							categorySelection={ categorySelection }
-							allCategories={ allCategories }
-							categoryDetails={ categoryDetails }
-							separator={ separator }
-							shouldShowHome={ showHome }
-						/>
-					</li>
-				</ol>
-			</nav>
+			{ isResolving && <Spinner /> }
+			{ ! isResolving && (
+				<nav { ...blockProps } aria-label="Breadcrumb">
+					<ol className="breadcrumb-list">
+						{ showHome && (
+							<li>
+								<span className="breadcrumb-item">Home</span>
+								<span className="breadcrumb-separator">
+									{ separatorSymbol }
+								</span>
+							</li>
+						) }
+						{ items.map( ( item, index ) => (
+							<li key={ index }>
+								<span className="breadcrumb-item">
+									{ item }
+								</span>
+							</li>
+						) ) }
+						<li>
+							<span className="breadcrumb-separator">
+								{ separatorSymbol }
+							</span>
+							<span
+								className="breadcrumb-item"
+								dangerouslySetInnerHTML={ {
+									__html: postTitle,
+								} }
+							/>
+						</li>
+					</ol>
+				</nav>
+			) }
 		</>
 	);
+}
+
+function getAncestors( category, allCats ): string[] {
+	const ancestors = [];
+	let current = category;
+
+	while ( current.parent ) {
+		const parent = allCats.find( ( cat ) => cat.id === current.parent );
+		if ( parent ) {
+			ancestors.push( parent.name );
+			current = parent;
+		} else {
+			break;
+		}
+	}
+
+	return ancestors;
+}
+
+function getAncestorDepth( category, allCats ) {
+	return getAncestors( category, allCats ).length;
+}
+
+function getSeparatorSymbol( separator ) {
+	switch ( separator ) {
+		case 'chevron':
+			return '›';
+		case 'arrow':
+			return '→';
+		case 'slash':
+		default:
+			return '/';
+	}
 }

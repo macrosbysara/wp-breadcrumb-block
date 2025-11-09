@@ -1,39 +1,51 @@
 import { store as editorStore } from '@wordpress/editor';
-import { store as coreStore } from '@wordpress/core-data';
+import { store as coreStore, Term } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 
 export default function useCategories() {
-	const { categoryDetails, allCategories } = useSelect( ( select ) => {
-		const coreDataStore = select( coreStore );
-
-		const post = select( editorStore ).getCurrentPost();
-		const postCategories = post?.categories || [];
-
-		// Fetch all categories to build full hierarchy
-		const allCategories =
-			coreDataStore.getEntityRecords( 'taxonomy', 'category', {
-				per_page: -1,
-			} ) || [];
-
-		if ( postCategories.length === 0 ) {
-			return {
-				categoryDetails: [],
-			};
-		}
-
-		const details = coreDataStore.getEntityRecords(
-			'taxonomy',
-			'category',
-			{
-				include: postCategories,
-				per_page: -1,
-			}
-		);
-
-		return {
-			allCategories,
-			categoryDetails: details || [],
-		};
+	const { postCategories } = useSelect( ( select ) => {
+		const postCategories =
+			select( editorStore ).getCurrentPost()?.categories;
+		return { postCategories };
 	}, [] );
-	return { categoryDetails, allCategories };
+
+	const { categoryDetails, allCategories, isResolving } = useSelect(
+		( select ) => {
+			const core = select( coreStore );
+			const allCategories: Term[] | null = core.getEntityRecords(
+				'taxonomy',
+				'category',
+				{
+					per_page: -1,
+				}
+			);
+			const categoryDetails: Term[] | null = core.getEntityRecords(
+				'taxonomy',
+				'category',
+				{
+					include: postCategories,
+				}
+			);
+
+			const isResolvingAll = core.isResolving( 'getEntityRecords', [
+				'taxonomy',
+				'category',
+				{ per_page: -1 },
+			] );
+			const isResolvingDetails = core.isResolving( 'getEntityRecords', [
+				'taxonomy',
+				'category',
+				{ include: postCategories },
+			] );
+
+			return {
+				allCategories,
+				categoryDetails,
+				isResolving: isResolvingAll || isResolvingDetails,
+			};
+		},
+		[ postCategories ]
+	);
+
+	return { categoryDetails, allCategories, isResolving };
 }
